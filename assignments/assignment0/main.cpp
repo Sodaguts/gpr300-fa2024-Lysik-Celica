@@ -49,6 +49,8 @@ struct background_rgba
 	float alpha = 1.0;
 }bg_rgba;
 
+glm::vec3 ambientModifier;
+
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 
@@ -85,6 +87,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, goldTexture);
 
+		ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
+
 		shader.use();
 		shader.setInt("_MainTex", 0);
 
@@ -98,6 +102,8 @@ int main() {
 		shader.setFloat("_Material.Kd", material.Kd);
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
+
+		shader.setVec3("_AmbientModifier", ambientModifier);
 
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 		glm::vec3(0.0, 1.0, 0.0);
