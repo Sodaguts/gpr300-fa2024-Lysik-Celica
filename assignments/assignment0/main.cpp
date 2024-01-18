@@ -16,6 +16,8 @@
 
 #include <ew/cameraController.h> 
 
+#include <ew/texture.h>
+
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
 void drawUI();
@@ -37,6 +39,7 @@ int main() {
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 
+	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
 
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); // Look at the center of the scene
@@ -62,9 +65,14 @@ int main() {
 
 		//RENDER
 		glClearColor(0.6f,0.8f,0.92f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
 
 		shader.use();
+		shader.setInt("_MainTex", 0);
+
 		shader.setMat4("_Model", glm::mat4(1.0f));
 		shader.setMat4("_ViewProjection", camera.projectionMatrix()* camera.viewMatrix());
 
