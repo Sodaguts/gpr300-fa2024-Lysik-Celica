@@ -37,7 +37,7 @@ void main()
 	float specularFactor = pow(max(dot(normal, h),0.0),_Material.Shininess);
 	//Combination of specular and diffuse reflection
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
-	lightColor += _AmbientColor * _Material.Ka;
+	lightColor += (_AmbientColor) * _Material.Ka;
 	vec3 objectColor = texture(_MainTex, fs_in.TexCoord).rgb;
 	FragColor = vec4(objectColor * lightColor, 1.0);
 }

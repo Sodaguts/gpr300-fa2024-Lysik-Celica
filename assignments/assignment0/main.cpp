@@ -41,6 +41,14 @@ struct Material
 	float Shininess = 128;
 }material;
 
+struct background_rgba 
+{
+	float red = 0.3;
+	float green = 0.4;
+	float blue = 0.8;
+	float alpha = 1.0;
+}bg_rgba;
+
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 
@@ -48,6 +56,7 @@ int main() {
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 
 	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
+	GLuint goldTexture = ew::loadTexture("assets/gold_color.jpg");
 
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); // Look at the center of the scene
@@ -70,11 +79,11 @@ int main() {
 		prevFrameTime = time;
 
 		//RENDER
-		glClearColor(0.6f,0.8f,0.92f,1.0f);
+		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue,bg_rgba.alpha);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glBindTexture(GL_TEXTURE_2D, goldTexture);
 
 		shader.use();
 		shader.setInt("_MainTex", 0);
@@ -83,6 +92,7 @@ int main() {
 		shader.setMat4("_ViewProjection", camera.projectionMatrix()* camera.viewMatrix());
 
 		shader.setVec3("_EyePos", camera.position);
+
 		
 		shader.setFloat("_Material.Ka", material.Ka);
 		shader.setFloat("_Material.Kd", material.Kd);
@@ -122,6 +132,11 @@ void drawUI() {
 		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
+	}
+
+	if (ImGui::CollapsingHeader("Background Color"))
+	{
+		ImGui::ColorEdit4("Background Color", &bg_rgba.red);
 	}
 
 	ImGui::End();
