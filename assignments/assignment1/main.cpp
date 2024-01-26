@@ -54,13 +54,16 @@ glm::vec3 ambientModifier;
 
 float quadVertices[] = 
 {
+	//x     y      //u    v
+	//triangle 1
 	-1.0f,  1.0f,  0.0f,  1.0f,
 	-1.0f, -1.0f,  0.0f,  0.0f,
-	 1.0f, -1.0f,  1.0f,  1.0f,
+	 1.0f,  1.0f,  1.0f,  1.0f,
 
-	-1.0f,  1.0f,  0.0f,  1.0f,
+	 //triangle 2
 	 1.0f, -1.0f,  1.0f,  0.0f,
-	 1.0f,  1.0f,  1.0f,  1.0f
+	 1.0f,  1.0f,  1.0f,  1.0f,
+	-1.0f, -1.0f,  0.0f,  0.0f
 };
 
 
@@ -116,6 +119,15 @@ int main() {
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
 
+	//rbo
+	unsigned int rbo;
+	glGenRenderbuffers(1,&rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) 
 	{
 		std::cout << "\nERROR:FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -170,9 +182,9 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		postShader.use();
-		postShader.setInt("screenTexture", 1);
+		postShader.setInt("screenTexture", 0);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		
 		glBindVertexArray(quadVAO);

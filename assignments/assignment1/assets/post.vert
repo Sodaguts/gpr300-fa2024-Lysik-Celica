@@ -1,7 +1,7 @@
 #version 450
 // Vertex attributes
 layout (location = 0) in vec2 vPos; // Quad Vertex Position
-layout (location = 2) in vec2 vTexCoord; // Quad UV Coordinates
+layout (location = 1) in vec2 vTexCoord; // Quad UV Coordinates
 
 out vec2 TexCoords;
 
