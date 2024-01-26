@@ -56,7 +56,7 @@ float quadVertices[] =
 {
 	-1.0f,  1.0f,  0.0f,  1.0f,
 	-1.0f, -1.0f,  0.0f,  0.0f,
-	 1.0f, -1.0f,  1.0f,  0.0f, 
+	 1.0f, -1.0f,  1.0f,  1.0f,
 
 	-1.0f,  1.0f,  0.0f,  1.0f,
 	 1.0f, -1.0f,  1.0f,  0.0f,
@@ -65,20 +65,15 @@ float quadVertices[] =
 
 
 int main() {
-	GLFWwindow* window = initWindow("Assignment 1", screenWidth, screenHeight);
+	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
 
-	//shaders
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
 	ew::Shader postShader = ew::Shader("assets/post.vert","assets/post.frag");
-
-	//models
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 
-	//textures
 	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
 	GLuint goldTexture = ew::loadTexture("assets/gold_color.jpg");
 
-	//camera
 	camera.position = glm::vec3(0.0f, 0.0f, 5.0f);
 	camera.target = glm::vec3(0.0f, 0.0f, 0.0f); // Look at the center of the scene
 	camera.aspectRatio = (float)screenWidth / screenHeight;
@@ -90,6 +85,8 @@ int main() {
 	glCullFace(GL_BACK); //back face culling
 	glEnable(GL_DEPTH_TEST); // Depth testing
 
+	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
+
 	unsigned int quadVAO, quadVBO;
 
 	glGenVertexArrays(1, &quadVAO);
@@ -97,7 +94,6 @@ int main() {
 
 	glBindVertexArray(quadVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-
 	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
@@ -113,30 +109,17 @@ int main() {
 	unsigned int colorBuffer;
 	glGenTextures(1, &colorBuffer);
 	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-
-	unsigned int rbo;
-	glGenRenderbuffers(1,&rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) 
 	{
 		std::cout << "\nERROR:FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 	}
-	std::cout << (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -145,13 +128,13 @@ int main() {
 		deltaTime = time - prevFrameTime;
 		prevFrameTime = time;
 
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		//RENDER
 
-		// RENDER
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue,bg_rgba.alpha);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-		glEnable(GL_DEPTH_TEST);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, goldTexture);
@@ -175,24 +158,23 @@ int main() {
 		shader.setVec3("_AmbientModifier", ambientModifier);
 
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
-		//glm::vec3(0.0, 1.0, 0.0);
+		glm::vec3(0.0, 1.0, 0.0);
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
 		cameraController.move(window, &camera, deltaTime);
 		monkeyModel.draw();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST);
+
 		glClearColor(bg_rgba.red, bg_rgba.green, bg_rgba.blue, bg_rgba.alpha);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
 		postShader.use();
-		postShader.setInt("screenTexture", 0);
+		postShader.setInt("screenTexture", 1);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		glDisable(GL_DEPTH_TEST);
+		
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, colorBuffer);
 
