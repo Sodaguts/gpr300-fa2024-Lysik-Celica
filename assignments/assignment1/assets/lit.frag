@@ -17,7 +17,8 @@ uniform vec3 _LightDirection = vec3(0.0, -1.0, 0.0);
 uniform vec3 _LightColor = vec3(1.0); //White Light
 uniform vec3 _AmbientColor = vec3(0.3, 0.4, 0.46);
 
-uniform vec3 _AmbientModifier = vec3(1.0, 1.0, 1.0);
+//uniform vec3 _AmbientModifier = vec3(1.0, 1.0, 1.0);
+uniform int _isInverted = 0;
 
 struct Material
 {
@@ -39,7 +40,16 @@ void main()
 	float specularFactor = pow(max(dot(normal, h),0.0),_Material.Shininess);
 	//Combination of specular and diffuse reflection
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
-	lightColor += (_AmbientColor * _AmbientModifier) * _Material.Ka;
+	lightColor += (_AmbientColor) * _Material.Ka;
 	vec3 objectColor = texture(_MainTex, fs_in.TexCoord).rgb;
-	FragColor = vec4(objectColor * lightColor, 1.0);
+	vec3 totalColor = objectColor * lightColor;
+	vec3 vecOne = vec3(1,1,1);
+	if(_isInverted == 1)
+	{
+		FragColor = vec4(vecOne - totalColor, 1.0);
+	}
+	else
+	{
+		FragColor = vec4(totalColor,1.0);
+	}
 }

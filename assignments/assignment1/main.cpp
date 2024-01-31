@@ -52,6 +52,8 @@ struct background_rgba
 
 glm::vec3 ambientModifier;
 
+bool invertColors = false;
+
 float quadVertices[] = 
 {
 	//x     y      //u    v
@@ -149,13 +151,17 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glEnable(GL_DEPTH_TEST);
 
-		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue,bg_rgba.alpha);
+		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue, bg_rgba.alpha);
+		if (invertColors == true) 
+		{
+			glClearColor(1.0 - bg_rgba.red, 1.0 - bg_rgba.green, 1.0 - bg_rgba.blue, bg_rgba.alpha);
+		}
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);		
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, goldTexture);
 
-		ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
+		//ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
 
 		singleColorShader.use();
 		singleColorShader.setInt("_MainTex", 0);
@@ -177,7 +183,15 @@ int main() {
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
 
-		shader.setVec3("_AmbientModifier", ambientModifier);
+		//shader.setVec3("_AmbientModifier", ambientModifier);
+		if (invertColors == true) 
+		{
+			shader.setInt("_isInverted", 1);
+		}
+		else 
+		{
+			shader.setInt("_isInverted", 0);
+		}
 
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 		glm::vec3(0.0, 1.0, 0.0);
@@ -232,6 +246,10 @@ void drawUI() {
 	if (ImGui::CollapsingHeader("Background Color"))
 	{
 		ImGui::ColorEdit4("Background Color", &bg_rgba.red);
+	}
+	if (ImGui::CollapsingHeader("Post Processing Effects"))
+	{
+		ImGui::Checkbox("Inverted", &invertColors);
 	}
 
 	ImGui::End();
