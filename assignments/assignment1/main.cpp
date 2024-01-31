@@ -72,6 +72,10 @@ int main() {
 
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
 	ew::Shader postShader = ew::Shader("assets/post.vert","assets/post.frag");
+
+	// outline shader
+	ew::Shader singleColorShader = ew::Shader("assets/lit.vert", "assets/singleColor.frag");
+
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 
 	GLuint brickTexture = ew::loadTexture("assets/brick_color.jpg");
@@ -146,12 +150,18 @@ int main() {
 		glEnable(GL_DEPTH_TEST);
 
 		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue,bg_rgba.alpha);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);		
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, goldTexture);
 
 		ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
+
+		singleColorShader.use();
+		singleColorShader.setInt("_MainTex", 0);
+		singleColorShader.setMat4("_Model", glm::mat4(1.0f));
+		singleColorShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
+		singleColorShader.setVec3("_EyePos", camera.position);
 
 		shader.use();
 		shader.setInt("_MainTex", 0);
