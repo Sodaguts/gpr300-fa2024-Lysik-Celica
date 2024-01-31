@@ -53,6 +53,7 @@ struct background_rgba
 glm::vec3 ambientModifier;
 
 bool invertColors = false;
+bool gamma = false;
 
 float quadVertices[] = 
 {
@@ -193,6 +194,15 @@ int main() {
 			shader.setInt("_isInverted", 0);
 		}
 
+		if (gamma == true) 
+		{
+			shader.setInt("_gamma", 1);
+		}
+		else 
+		{
+			shader.setInt("_gamma", 0);
+		}
+
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 		glm::vec3(0.0, 1.0, 0.0);
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
@@ -250,6 +260,7 @@ void drawUI() {
 	if (ImGui::CollapsingHeader("Post Processing Effects"))
 	{
 		ImGui::Checkbox("Inverted", &invertColors);
+		ImGui::Checkbox("Gamma",&gamma);
 	}
 
 	ImGui::End();
