@@ -17,7 +17,7 @@ uniform vec3 _LightDirection = vec3(0.0, -1.0, 0.0);
 uniform vec3 _LightColor = vec3(1.0); //White Light
 uniform vec3 _AmbientColor = vec3(0.3, 0.4, 0.46);
 
-//uniform vec3 _LightPos = vec3(0.0,0.0,0.0);
+uniform vec3 _LightPos = vec3(0.0,1.0,0.0);
 
 //uniform vec3 _AmbientModifier = vec3(1.0, 1.0, 1.0);
 uniform int _isInverted = 0;
@@ -46,7 +46,7 @@ void main()
 	
 
 	float max_distance = 1.5;
-	float adistance = length(_EyePos - fs_in.WorldPos);
+	float adistance = length(_LightPos - fs_in.WorldPos);
 	float attenuation;
 	if (_gamma == 1)
 	{

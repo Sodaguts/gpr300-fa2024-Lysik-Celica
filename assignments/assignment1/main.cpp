@@ -54,6 +54,7 @@ glm::vec3 ambientModifier;
 
 bool invertColors = false;
 bool gamma = false;
+glm::vec3 lightPosition = glm::vec3(0.0,1.0,0.0);
 
 float quadVertices[] = 
 {
@@ -202,6 +203,7 @@ int main() {
 		{
 			shader.setInt("_gamma", 0);
 		}
+		shader.setVec3("_LightPos", lightPosition);
 
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 		glm::vec3(0.0, 1.0, 0.0);
@@ -261,6 +263,7 @@ void drawUI() {
 	{
 		ImGui::Checkbox("Inverted", &invertColors);
 		ImGui::Checkbox("Gamma",&gamma);
+		ImGui::SliderFloat3("Light Pos", &lightPosition.x, -1.0, 1.0 );
 	}
 
 	ImGui::End();
