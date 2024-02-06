@@ -75,6 +75,18 @@ float quadVertices[] =
 //	glGenVertexArrays(1, &debugVertices);
 //}
 
+float planeVertices[] =
+{
+	//positions            //normals         //UVs
+	 25.0f, -1.5f, -25.0f, 0.0f, 1.0f, 0.0f,  0.0f, 25.0f,
+	-25.0f, -1.5f,  25.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f,
+	 25.0f, -1.5f,  25.0f, 0.0f, 1.0f, 0.0f, 25.0f,  0.0f,
+	 
+	 25.0f, -1.5f, -25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f,
+	-25.0f, -1.5f, -25.0f, 0.0f, 1.0f, 0.0f,  0.0f, 25.0f,
+	-25.0f, -1.5f,  25.0f, 0.0f, 1.0f, 0.0f, 25.0f,  0.0f
+};
+
 
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
@@ -107,7 +119,22 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
+	//plane
+	unsigned int planeVBO, planeVAO;
+	glGenVertexArrays(1,&planeVAO);
+	glGenBuffers(1, &planeVBO);
+	glBindVertexArray(planeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
+	glBindVertexArray(0);
 
+	//debug window
 	float debugVertices[] = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f };
 	unsigned int quadVAO, quadVBO;
 	glGenVertexArrays(1, &quadVAO);
@@ -144,24 +171,6 @@ int main() {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	/*unsigned int colorBuffer;
-	glGenTextures(1, &colorBuffer);
-	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screenWidth, screenHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);*/
-
-	//rbo
-	//unsigned int rbo;
-	//glGenRenderbuffers(1, &rbo);
-	//glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-	//glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
@@ -178,12 +187,12 @@ int main() {
 		// ALL MATH NEEDED HERE
 		// light source variables
 		auto light_pos = glm::vec3(0.0, 10.0, 0.0);
-		auto light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0, 0.0, -1.0));
+		auto light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0)); // (up) was originally 0.0, 0.0, -1.0
 		auto light_proj = glm::ortho(-5.0f, 5.0f, 0.0f, 1000.0f);
 
 		// from learnopengl 
 		float near_plane = 1.0f, far_plane = 7.5f;
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 lightProjection = glm::ortho(-3.0f, 3.0f, -3.0f, 3.0f, near_plane, far_plane); // orginally -10,10,-10,10
 		glm::mat4 lightView = glm::lookAt(
 			glm::vec3(-2.0f, 4.0f, -1.0f),
 			glm::vec3(0.0f),
@@ -201,6 +210,14 @@ int main() {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		shadowShader.use();
+
+		//draw plane
+		glm::mat4 model = glm::mat4(1.0f);
+		shader.setMat4("_Model", model);
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		//switch to suzanne
 		shadowShader.setMat4("_Model", monkeyTransform.modelMatrix());
 		shadowShader.setMat4("_ViewProjection", lightSpaceMatrix);
 		monkeyModel.draw();
@@ -223,6 +240,12 @@ int main() {
 		// https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp
 		shader.use();
 		shader.setInt("_MainTex", 0);
+
+		//draw plane
+		shader.setMat4("_Model", model);
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
 		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
 		shader.setVec3("_EyePos", camera.position);
@@ -230,6 +253,7 @@ int main() {
 		shader.setFloat("_Material.Kd", material.Kd);
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
+		//draw plane
 
 		monkeyModel.draw();
 		//====================================
@@ -244,85 +268,6 @@ int main() {
 		debugShader.setInt("debug_image", 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		//====================================
-		
-
-
-		/*glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue, bg_rgba.alpha);
-		if (invertColors == true)
-		{
-			glClearColor(1.0 - bg_rgba.red, 1.0 - bg_rgba.green, 1.0 - bg_rgba.blue, bg_rgba.alpha);
-		}
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);		*/
-
-		/*glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, goldTexture);*/
-
-		////ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
-
-		//singleColorShader.use();
-		//singleColorShader.setInt("_MainTex", 0);
-		//singleColorShader.setMat4("_Model", glm::mat4(1.0f));
-		//singleColorShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
-		//singleColorShader.setVec3("_EyePos", camera.position);
-
-		/*shader.use();
-		shader.setInt("_MainTex", 0);
-
-		shader.setMat4("_Model", glm::mat4(1.0f));
-		shader.setMat4("_ViewProjection", camera.projectionMatrix()* camera.viewMatrix());
-
-		shader.setVec3("_EyePos", camera.position);
-
-		
-		shader.setFloat("_Material.Ka", material.Ka);
-		shader.setFloat("_Material.Kd", material.Kd);
-		shader.setFloat("_Material.Ks", material.Ks);
-		shader.setFloat("_Material.Shininess", material.Shininess);*/
-
-		//shader.setVec3("_AmbientModifier", ambientModifier);
-		/*if (invertColors == true)
-		{
-			shader.setInt("_isInverted", 1);
-		}
-		else
-		{
-			shader.setInt("_isInverted", 0);
-		}
-
-		if (gamma == true)
-		{
-			shader.setInt("_gamma", 1);
-		}
-		else
-		{
-			shader.setInt("_gamma", 0);
-		}
-		shader.setVec3("_LightPos", lightPosition);*/
-
-
-
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glDisable(GL_DEPTH_TEST);
-
-		//glViewport(screenWidth - 150, 0, 150, 150);
-
-
-		////glClearColor(bg_rgba.red, bg_rgba.green, bg_rgba.blue, bg_rgba.alpha);
-		////glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//
-		//glClear(GL_DEPTH_BUFFER_BIT);
-
-		//postShader.use();
-		//postShader.setInt("screenTexture", 0);
-
-		////glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-
-		//glBindVertexArray(quadVAO);
-		////glBindTexture(GL_TEXTURE_2D, colorBuffer);
-
-
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		drawUI();
 
