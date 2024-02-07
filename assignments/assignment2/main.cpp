@@ -98,8 +98,11 @@ int main() {
 	ew::Shader singleColorShader = ew::Shader("assets/lit.vert", "assets/singleColor.frag");
 
 	//shadow mapping
-	ew::Shader shadowShader = ew::Shader("assets/depthShader.vert", "assets/depthShader.frag");
+	ew::Shader depthShader = ew::Shader("assets/depthShader.vert", "assets/depthShader.frag");
 	ew::Shader debugShader = ew::Shader("assets/debug.vert", "assets/debug.frag");
+
+	//shadow
+	ew::Shader shadowShader = ew::Shader("assets/shadow.vert", "assets/shadow.frag");
 
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
 
@@ -186,9 +189,9 @@ int main() {
 
 		// ALL MATH NEEDED HERE
 		// light source variables
-		auto light_pos = glm::vec3(0.0, 10.0, 0.0);
-		auto light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0)); // (up) was originally 0.0, 0.0, -1.0
-		auto light_proj = glm::ortho(-5.0f, 5.0f, 0.0f, 1000.0f);
+		//auto light_pos = glm::vec3(0.0, 10.0, 0.0);
+		//auto light_view = glm::lookAt(light_pos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0)); // (up) was originally 0.0, 0.0, -1.0
+		//auto light_proj = glm::ortho(-5.0f, 5.0f, 0.0f, 1000.0f);
 
 		// from learnopengl 
 		float near_plane = 1.0f, far_plane = 7.5f;
@@ -204,12 +207,12 @@ int main() {
 		cameraController.move(window, &camera, deltaTime);
 		//====================================
 		//RENDER DEPTH TO FBO
-		glViewport(0, 0, screenWidth, screenHeight);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
-		shadowShader.use();
+		depthShader.use();
 
 		//draw plane
 		glm::mat4 model = glm::mat4(1.0f);
@@ -218,13 +221,14 @@ int main() {
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		//switch to suzanne
-		shadowShader.setMat4("_Model", monkeyTransform.modelMatrix());
-		shadowShader.setMat4("_ViewProjection", lightSpaceMatrix);
+		depthShader.setMat4("_Model", monkeyTransform.modelMatrix());
+		depthShader.setMat4("_ViewProjection", lightSpaceMatrix);
 		monkeyModel.draw();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		//====================================
 
 		//RENDER COMPLETE SCENE
+		glViewport(0,0,screenWidth, screenHeight);
 		glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -253,7 +257,6 @@ int main() {
 		shader.setFloat("_Material.Kd", material.Kd);
 		shader.setFloat("_Material.Ks", material.Ks);
 		shader.setFloat("_Material.Shininess", material.Shininess);
-		//draw plane
 
 		monkeyModel.draw();
 		//====================================
