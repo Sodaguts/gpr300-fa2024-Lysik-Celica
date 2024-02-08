@@ -164,10 +164,13 @@ int main() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+
+	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
 	glDrawBuffer(GL_NONE);
@@ -242,23 +245,32 @@ int main() {
 
 		// use a custom shader that smaples from depth buffer.
 		// https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp
-		shader.use();
-		shader.setInt("_MainTex", 0);
+
+		//shadow shader
+		shadowShader.use();
 
 		//draw plane
-		shader.setMat4("_Model", model);
+		shadowShader.setMat4("model", model);
 		glBindVertexArray(planeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		shader.setMat4("_Model", monkeyTransform.modelMatrix());
-		shader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
-		shader.setVec3("_EyePos", camera.position);
-		shader.setFloat("_Material.Ka", material.Ka);
-		shader.setFloat("_Material.Kd", material.Kd);
-		shader.setFloat("_Material.Ks", material.Ks);
-		shader.setFloat("_Material.Shininess", material.Shininess);
+		//shadowShader.setMat4("model", model);
+		shadowShader.setMat4("model", monkeyTransform.modelMatrix());
+		shadowShader.setMat4("projection", camera.projectionMatrix());
+		shadowShader.setMat4("view", camera.viewMatrix());
+		shadowShader.setVec3("viewPos", camera.position);
+		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+		shadowShader.setVec3("lightPos", lightPosition);
+
+		glBindTextureUnit(0, brickTexture);
+		shadowShader.setInt("MainTexture", 0);
+		glBindTextureUnit(1, depthMap);
+		shadowShader.setInt("shadowMap", 1);
 
 		monkeyModel.draw();
+
+
+
 		//====================================
 
 		// RENDER DEBUG QUAD

@@ -8,7 +8,7 @@ in VS_OUT {
 	vec4 FragPosLightSpace;
 } fs_in;
 
-uniform sampler2D diffuseTexture;
+uniform sampler2D MainTexture;
 uniform sampler2D shadowMap;
 
 uniform vec3 lightPos;
@@ -25,20 +25,33 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	//get depth of current fragment from light's perspective
 	float currentDepth = projCoords.z;
 	//check whether current frag pos is in shadow
-	float shadow = currentDepth > closestDepth ? 1.0 : 0.0;
+
+	vec3 normal = normalize(fs_in.Normal);
+	vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+
+	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+
+	if(projCoords.z > 1.0)
+	{
+		shadow = 0.0;
+	}
 
 	return shadow;
 }
 
 void main()
 {
-	vec3 color = texture(diffuseTexture, fs_in.TexCoords).rgb;
+	vec3 color = texture(MainTexture, fs_in.TexCoords).rgb;
 	vec3 normal = normalize(fs_in.Normal);
 	vec3 lightColor = vec3(1.0);
 
-	vec3 ambient = 0.15 * lightColor;
-	vec3 lightDir = normalize(lightPos - fs_in.FragPos);
-	float diff = max(dot(lightDir, normal), 0.0);
+	vec3 ambient = vec3(0.3, 0.4, 0.46)* lightColor;
+	//vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+	vec3 lightDir = vec3(0.0, -1.0, 0.0);
+	vec3 toLight = -lightDir;
+
+	float diff = max(dot(normal, toLight), 0.0);
 	vec3 diffuse = diff * lightColor;
 
 	vec3 viewDir = normalize(viewPos - fs_in.FragPos);
