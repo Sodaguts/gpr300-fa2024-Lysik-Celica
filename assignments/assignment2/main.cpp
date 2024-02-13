@@ -54,7 +54,8 @@ glm::vec3 ambientModifier;
 
 bool invertColors = false;
 bool gamma = false;
-glm::vec3 lightPosition = glm::vec3(0.0, 1.0, 0.0);
+glm::vec3 lightPosition = glm::vec3(-2.0f, 4.0f, -1.0f); // originally 0.0,1.0,0.0
+// problem occurs when messing with the Y axis
 
 float quadVertices[] =
 {
@@ -198,9 +199,9 @@ int main() {
 
 		// from learnopengl 
 		float near_plane = 1.0f, far_plane = 7.5f;
-		glm::mat4 lightProjection = glm::ortho(-3.0f, 3.0f, -3.0f, 3.0f, near_plane, far_plane); // orginally -10,10,-10,10
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane); // orginally -10,10,-10,10
 		glm::mat4 lightView = glm::lookAt(
-			glm::vec3(-2.0f, 4.0f, -1.0f),
+			glm::vec3(lightPosition),
 			glm::vec3(0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
@@ -319,7 +320,13 @@ void drawUI() {
 	{
 		ImGui::Checkbox("Inverted", &invertColors);
 		ImGui::Checkbox("Gamma", &gamma);
-		ImGui::SliderFloat3("Light Pos", &lightPosition.x, -1.0, 1.0);
+		
+	}
+	if (ImGui::CollapsingHeader("Light Controls"))
+	{
+		//control light position
+		ImGui::SliderFloat3("Light Pos", &lightPosition.x, -4.0, 4.0);
+
 	}
 
 	ImGui::End();
