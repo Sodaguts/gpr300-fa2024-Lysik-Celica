@@ -54,6 +54,15 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	return shadow;
 }
 
+struct Material
+{
+	float Ka;
+	float Kd;
+	float Ks;
+	float Shininess;
+};
+uniform Material _Material;
+
 void main()
 {
 	vec3 color = texture(MainTexture, fs_in.TexCoords).rgb;
@@ -71,13 +80,13 @@ void main()
 	vec3 viewDir = normalize(viewPos - fs_in.FragPos);
 	float spec = 0.0;
 	vec3 halfwayDir = normalize(toLight + viewDir);
-	spec = pow(max(dot(normal, halfwayDir), 0.0),64.0);
+	spec = pow(max(dot(normal, halfwayDir), 0.0),_Material.Shininess);
 	vec3 specular = spec * lightColor;
 
 	float shadow = ShadowCalculation(fs_in.FragPosLightSpace);
 
 
-	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse+specular)) * color;
+	vec3 lighting = (ambient + (1.0 - shadow) * ((diffuse*_Material.Kd)+(specular*_Material.Ks))) * color;
 
 	FragColor = vec4(lighting, 1.0);
 }

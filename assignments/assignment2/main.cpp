@@ -264,6 +264,11 @@ int main() {
 		shadowShader.setVec3("lightPos", lightPosition);
 		shadowShader.setFloat("texelMod", texelMod);
 
+		shadowShader.setFloat("_Material.Ka", material.Ka);
+		shadowShader.setFloat("_Material.Kd", material.Kd);
+		shadowShader.setFloat("_Material.Ks", material.Ks);
+		shadowShader.setFloat("_Material.Shininess", material.Shininess);
+
 		glBindTextureUnit(0, brickTexture);
 		shadowShader.setInt("MainTexture", 0);
 		glBindTextureUnit(1, depthMap);
@@ -304,13 +309,13 @@ void drawUI() {
 		resetCamera(&camera, &cameraController);
 	}
 
-	/*if (ImGui::CollapsingHeader("Material"))
+	if (ImGui::CollapsingHeader("Material"))
 	{
 		ImGui::SliderFloat("AmbientK", &material.Ka, 0.0f, 1.0f);
 		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
-	}*/
+	}
 
 	if (ImGui::CollapsingHeader("Background Color"))
 	{
