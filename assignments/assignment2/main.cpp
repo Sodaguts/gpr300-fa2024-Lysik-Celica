@@ -54,7 +54,9 @@ glm::vec3 ambientModifier;
 
 bool invertColors = false;
 bool gamma = false;
-glm::vec3 lightPosition = glm::vec3(-2.0f, 4.0f, -1.0f); // originally 0.0,1.0,0.0
+glm::vec3 lightPosition = glm::vec3(0.01f, 2.0f, 0.01f); // originally 0.0,1.0,0.0
+glm::vec3 lightDirection = glm::vec3(0.0f,0.0f,0.0f);
+float texelMod = 3.0f;
 // problem occurs when messing with the Y axis
 
 float quadVertices[] =
@@ -198,11 +200,11 @@ int main() {
 		//auto light_proj = glm::ortho(-5.0f, 5.0f, 0.0f, 1000.0f);
 
 		// from learnopengl 
-		float near_plane = 1.0f, far_plane = 7.5f;
+		float near_plane = 1.0f, far_plane = 10.5f;
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane); // orginally -10,10,-10,10
 		glm::mat4 lightView = glm::lookAt(
 			glm::vec3(lightPosition),
-			glm::vec3(0.0f),
+			glm::vec3(lightDirection), //light direction
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
@@ -216,13 +218,10 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_FRONT);
 		depthShader.use();
 
-		//draw plane
-		glm::mat4 model = glm::mat4(1.0f);
-		shader.setMat4("_Model", model);
-		glBindVertexArray(planeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glm::mat4 model = glm::mat4(1.0f); // for the plane later
 
 		//switch to suzanne
 		depthShader.setMat4("_Model", monkeyTransform.modelMatrix());
@@ -233,7 +232,7 @@ int main() {
 
 		//RENDER COMPLETE SCENE
 		glViewport(0,0,screenWidth, screenHeight);
-		glClearColor(1.0f, 0.0f, 1.0f, 0.0f);
+		glClearColor(bg_rgba.red, bg_rgba.green, bg_rgba.blue, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// pipeline
@@ -243,6 +242,7 @@ int main() {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glCullFace(GL_BACK);
 
 		// use a custom shader that smaples from depth buffer.
 		// https://learnopengl.com/code_viewer_gh.php?code=src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp
@@ -262,6 +262,7 @@ int main() {
 		shadowShader.setVec3("viewPos", camera.position);
 		shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 		shadowShader.setVec3("lightPos", lightPosition);
+		shadowShader.setFloat("texelMod", texelMod);
 
 		glBindTextureUnit(0, brickTexture);
 		shadowShader.setInt("MainTexture", 0);
@@ -275,7 +276,6 @@ int main() {
 		//====================================
 
 		// RENDER DEBUG QUAD
-		// DEBUG TEXTURE SGHOULD BE CENTERED, could be UV or vertex issue
 		glViewport(screenWidth - 150, 0, 150, 150);
 		glBindVertexArray(quadVAO);
 		glActiveTexture(GL_TEXTURE0);
@@ -304,29 +304,32 @@ void drawUI() {
 		resetCamera(&camera, &cameraController);
 	}
 
-	if (ImGui::CollapsingHeader("Material"))
+	/*if (ImGui::CollapsingHeader("Material"))
 	{
 		ImGui::SliderFloat("AmbientK", &material.Ka, 0.0f, 1.0f);
 		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
 		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
 		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
-	}
+	}*/
 
 	if (ImGui::CollapsingHeader("Background Color"))
 	{
 		ImGui::ColorEdit4("Background Color", &bg_rgba.red);
 	}
-	if (ImGui::CollapsingHeader("Post Processing Effects"))
+	/*if (ImGui::CollapsingHeader("Post Processing Effects"))
 	{
 		ImGui::Checkbox("Inverted", &invertColors);
 		ImGui::Checkbox("Gamma", &gamma);
 		
-	}
+	}*/
 	if (ImGui::CollapsingHeader("Light Controls"))
 	{
 		//control light position
-		ImGui::SliderFloat3("Light Pos", &lightPosition.x, -4.0, 4.0);
-
+		ImGui::SliderFloat3("Light Pos", &lightDirection.x, -1.0, 1.0);
+	}
+	if (ImGui::CollapsingHeader("PCF"))
+	{
+		ImGui::SliderFloat("PCF Mod", &texelMod, 1.0, 4.0);
 	}
 
 	ImGui::End();
