@@ -18,6 +18,7 @@
 
 #include <ew/texture.h>
 #include <iostream>
+#include <ew/procGen.h>
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 GLFWwindow* initWindow(const char* title, int width, int height);
@@ -37,6 +38,8 @@ int screenWidth = 1080;
 int screenHeight = 720;
 float prevFrameTime;
 float deltaTime;
+
+
 
 ew::Camera camera;
 ew::CameraController cameraController;
@@ -132,6 +135,7 @@ int main() {
 
 	ew::Transform monkeyTransform;
 
+	ew::Mesh plane = ew::createPlane(100, 100, 20);
 
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
@@ -179,6 +183,9 @@ int main() {
 		geometryShader.setFloat("_Material.Kd", material.Kd);
 		geometryShader.setFloat("_Material.Ks", material.Ks);
 		geometryShader.setFloat("_Material.Shininess", material.Shininess);
+
+		//draw plane
+		plane.draw();
 
 		geometryShader.setVec3("_AmbientModifier", ambientModifier);
 		geometryShader.setMat4("_Model", monkeyTransform.modelMatrix());
