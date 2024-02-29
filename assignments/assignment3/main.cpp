@@ -39,8 +39,6 @@ int screenHeight = 720;
 float prevFrameTime;
 float deltaTime;
 
-
-
 ew::Camera camera;
 ew::CameraController cameraController;
 
@@ -63,6 +61,7 @@ struct background_rgba
 }bg_rgba;
 
 glm::vec3 ambientModifier;
+unsigned int quadVAO;
 
 void createDeferredPass(void) 
 {
@@ -116,6 +115,36 @@ void createDeferredPass(void)
 
 }
 
+void createDisplayPass() 
+{
+	float quadVertices[] =
+	{
+		//x     y      //u    v
+		//triangle 1
+		-1.0f,  1.0f,  0.0f,  1.0f,
+		-1.0f, -1.0f,  0.0f,  0.0f,
+		 1.0f,  1.0f,  1.0f,  1.0f,
+
+		 //triangle 2
+		 1.0f, -1.0f,  1.0f,  0.0f,
+		 1.0f,  1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  0.0f,  0.0f
+	};
+
+	unsigned int quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+	glBindVertexArray(0);
+}
 
 int main() {
 	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
@@ -132,15 +161,18 @@ int main() {
 	camera.fov = 60.0f; // Vertical field of view in degrees
 
 	ew::Shader geometryShader = ew::Shader("assets/geometry.vert", "assets/geometry.frag");
+	ew::Shader lightingShader = ew::Shader("assets/lighting.vert", "assets/lighting.frag");
 
 	ew::Transform monkeyTransform;
 
-	ew::Mesh plane = ew::createPlane(100, 100, 20);
+	ew::Mesh plane = ew::createPlane(1000, 1000, 100);
+	ew::Transform planeTransform;
 
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
 	createDeferredPass();
+	createDisplayPass();
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -153,6 +185,9 @@ int main() {
 
 		cameraController.move(window, &camera, deltaTime);
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
+		planeTransform.position.y = -1.0;
+
+
 
 		//RENDER
 		//================================
@@ -185,15 +220,53 @@ int main() {
 		geometryShader.setFloat("_Material.Shininess", material.Shininess);
 
 		//draw plane
+		
+		geometryShader.setMat4("_Model", planeTransform.modelMatrix());
 		plane.draw();
 
 		geometryShader.setVec3("_AmbientModifier", ambientModifier);
-		geometryShader.setMat4("_Model", monkeyTransform.modelMatrix());
+		/*geometryShader.setMat4("_Model", monkeyTransform.modelMatrix());
 
-		monkeyModel.draw();
+		monkeyModel.draw();*/
+		glBindTexture(GL_TEXTURE_2D, brickTexture);
+
+		for (int z = 0; z < 100; z++) 
+		{
+			for (int x = 0; x < 100; x++) 
+			{
+				monkeyTransform.position.x = x * -5.0f;
+				monkeyTransform.position.z = z * -5.0f;
+				geometryShader.setMat4("_Model", monkeyTransform.modelMatrix());
+				monkeyModel.draw();
+			}
+		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		//lighting pass
+		glBindVertexArray(quadVAO);
+		glBindTextureUnit(0, deferred.world_position);
+		glBindTextureUnit(1, deferred.world_normal);
+		glBindTextureUnit(2, deferred.albedo);
+
+		lightingShader.use();
+		lightingShader.setMat4("_Model", glm::mat4(1.0f));
+		lightingShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
+		lightingShader.setVec3("_EyePos", camera.position);
+		lightingShader.setFloat("_Material.Ka", material.Ka);
+		lightingShader.setFloat("_Material.Kd", material.Kd);
+		lightingShader.setFloat("_Material.Ks", material.Ks);
+		lightingShader.setFloat("_Material.Shininess", material.Shininess);
+
+		lightingShader.setVec3("_AmbientModifier", ambientModifier);
+
+		lightingShader.setInt("gPosition", 0);
+		lightingShader.setInt("gNormals", 1);
+		lightingShader.setInt("gAlbedo", 2);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
 		drawUI();
 
@@ -208,29 +281,30 @@ void drawUI() {
 	ImGui::NewFrame();
 	//Using a Child allow to fill all the space of the window.
 	ImVec2 windowSize = ImGui::GetWindowSize();
-	//ImGui::BeginChild("FBO");
-	//ImGui::Image((ImTextureID)deferred.fbo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	//ImGui::EndChild();
 
-	ImGui::Begin("WorldPosition");
+	ImGui::Begin("Settings");
+	ImGui::Text("Add Settings Here!");
+	if (ImGui::Button("Reset Camera"))
+	{
+		resetCamera(&camera, &cameraController);
+	}
+
+	if (ImGui::CollapsingHeader("Material"))
+	{
+		ImGui::SliderFloat("AmbientK", &material.Ka, 0.0f, 1.0f);
+		ImGui::SliderFloat("DiffuseK", &material.Kd, 0.0f, 1.0f);
+		ImGui::SliderFloat("SpecularK", &material.Ks, 0.0f, 1.0f);
+		ImGui::SliderFloat("Shininess", &material.Shininess, 2.0f, 1024.0f);
+	}
+	ImGui::Text("WorldPosition");
 	ImGui::Image((ImTextureID)deferred.world_position, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::End();
-
-	ImGui::Begin("WorldNormal");
+	ImGui::Text("WorldNormal");
 	ImGui::Image((ImTextureID)deferred.world_normal, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::End();
-
-	ImGui::Begin("Albedo");
+	ImGui::Text("Albedo");
 	ImGui::Image((ImTextureID)deferred.albedo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::End();
-
-	ImGui::Begin("Depth");
+	ImGui::Text("Depth");
 	ImGui::Image((ImTextureID)deferred.depth, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
-
-
-	
-
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
