@@ -63,6 +63,14 @@ struct background_rgba
 glm::vec3 ambientModifier;
 unsigned int quadVAO;
 
+//lighting stuff
+glm::vec3 lightPosition = glm::vec3(0.01f, 2.0f, 0.01f);
+glm::vec3 lightDirection = glm::vec3(0.0f, 0.0f, 0.0f);
+float texelMod = 3.0f;
+
+unsigned int depthFBO;
+unsigned int depthMap;
+
 void createDeferredPass(void) 
 {
 	glCreateFramebuffers(1, &deferred.fbo);
@@ -115,6 +123,37 @@ void createDeferredPass(void)
 
 }
 
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+void createDepthBuffer() 
+{
+	glCreateFramebuffers(1, &depthFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+
+	glGenTextures(1,&depthMap);
+	glBindTexture(GL_TEXTURE_2D, depthMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0 , GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+
+	float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	glDrawBuffer(GL_NONE);
+	glDrawBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "\nERROR:FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
+	}
+}
+
 void createDisplayPass() 
 {
 	float quadVertices[] =
@@ -163,6 +202,8 @@ int main() {
 	ew::Shader geometryShader = ew::Shader("assets/geometry.vert", "assets/geometry.frag");
 	ew::Shader lightingShader = ew::Shader("assets/lighting.vert", "assets/lighting.frag");
 
+	ew::Shader shadowShader = ew::Shader("assets/depthShader.vert","assets/depthShader.frag");
+
 	ew::Transform monkeyTransform;
 
 	ew::Mesh plane = ew::createPlane(1000, 1000, 100);
@@ -173,6 +214,7 @@ int main() {
 
 	createDeferredPass();
 	createDisplayPass();
+	createDepthBuffer();
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -187,21 +229,45 @@ int main() {
 		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
 		planeTransform.position.y = -1.0;
 
+		float near_plane = 1.0f, far_plane = 10.5f;
+		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+		glm::mat4 lightView = glm::lookAt(
+			glm::vec3(lightPosition),
+			glm::vec3(lightDirection), //light direction
+			glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
+		//RENDER DEPTH TO FBO
+		//================================
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
+		glCullFace(GL_FRONT);
+
+		shadowShader.use();
+		shadowShader.setMat4("_Model", monkeyTransform.modelMatrix());
+		shadowShader.setMat4("_ViewProjection", lightSpaceMatrix);
+		monkeyModel.draw();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		//RENDER
 		//================================
 
 		//geometry pass
+		glViewport(0, 0, screenWidth, screenHeight);
 		glBindFramebuffer(GL_FRAMEBUFFER, deferred.fbo);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK); //back face culling
 		glEnable(GL_DEPTH_TEST); // Depth testing
+
 		glClearColor(bg_rgba.red, bg_rgba.green, bg_rgba.blue, bg_rgba.alpha);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, goldTexture);
+
+		glBindTextureUnit(0, goldTexture);
 
 		ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
 
@@ -225,10 +291,8 @@ int main() {
 		plane.draw();
 
 		geometryShader.setVec3("_AmbientModifier", ambientModifier);
-		/*geometryShader.setMat4("_Model", monkeyTransform.modelMatrix());
 
-		monkeyModel.draw();*/
-		glBindTexture(GL_TEXTURE_2D, brickTexture);
+		glBindTextureUnit(1, brickTexture);
 
 		for (int z = 0; z < 100; z++) 
 		{
@@ -304,6 +368,8 @@ void drawUI() {
 	ImGui::Image((ImTextureID)deferred.albedo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::Text("Depth");
 	ImGui::Image((ImTextureID)deferred.depth, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::Text("Depth");
+	ImGui::Image((ImTextureID)depthMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
 
 	ImGui::Render();
