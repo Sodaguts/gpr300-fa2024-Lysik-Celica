@@ -206,8 +206,36 @@ int main() {
 
 	ew::Transform monkeyTransform;
 
-	ew::Mesh plane = ew::createPlane(1000, 1000, 100);
+	ew::Mesh plane = ew::createPlane(500,500,500);
 	ew::Transform planeTransform;
+
+	//plane
+
+	float planeVertices[] =
+	{
+		//positions            //normals         //UVs
+		 125.0f, -1.5f, -125.0f, 0.0f, 1.0f, 0.0f,  0.0f, 25.0f,
+		-125.0f, -1.5f,  125.0f, 0.0f, 1.0f, 0.0f,  0.0f,  0.0f,
+		 125.0f, -1.5f,  125.0f, 0.0f, 1.0f, 0.0f, 25.0f,  0.0f,
+
+		 125.0f, -1.5f, -125.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f,
+		-125.0f, -1.5f, -125.0f, 0.0f, 1.0f, 0.0f,  0.0f, 25.0f,
+		-125.0f, -1.5f,  125.0f, 0.0f, 1.0f, 0.0f, 25.0f,  0.0f
+	};
+
+	unsigned int planeVBO, planeVAO;
+	glGenVertexArrays(1, &planeVAO);
+	glGenBuffers(1, &planeVBO);
+	glBindVertexArray(planeVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glBindVertexArray(0);
 
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
@@ -286,9 +314,12 @@ int main() {
 		geometryShader.setFloat("_Material.Shininess", material.Shininess);
 
 		//draw plane
-		
-		geometryShader.setMat4("_Model", planeTransform.modelMatrix());
-		plane.draw();
+		glBindTextureUnit(0, brickTexture);
+		/*geometryShader.setMat4("_Model", planeTransform.modelMatrix());
+		plane.draw();*/
+		geometryShader.setMat4("_Model", glm::mat4(1.0f));
+		glBindVertexArray(planeVAO);
+		glDrawArrays(GL_TRIANGLES,0,6);
 
 		geometryShader.setVec3("_AmbientModifier", ambientModifier);
 
