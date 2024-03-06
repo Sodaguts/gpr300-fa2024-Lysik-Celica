@@ -145,7 +145,7 @@ void createDepthBuffer()
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
 	glDrawBuffer(GL_NONE);
-	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -210,7 +210,6 @@ int main() {
 	ew::Transform planeTransform;
 
 	//plane
-
 	float planeVertices[] =
 	{
 		//positions            //normals         //UVs
@@ -397,7 +396,7 @@ void drawUI() {
 	ImGui::Image((ImTextureID)deferred.world_normal, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::Text("Albedo");
 	ImGui::Image((ImTextureID)deferred.albedo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::Text("Depth");
+	ImGui::Text("Deferred Depth");
 	ImGui::Image((ImTextureID)deferred.depth, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::Text("Depth");
 	ImGui::Image((ImTextureID)depthMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
