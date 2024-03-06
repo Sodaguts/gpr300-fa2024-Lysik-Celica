@@ -123,36 +123,6 @@ void createDeferredPass(void)
 
 }
 
-const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-
-void createDepthBuffer() 
-{
-	glCreateFramebuffers(1, &depthFBO);
-	glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-
-	glGenTextures(1,&depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0 , GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-
-	float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "\nERROR:FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
-	}
-}
 
 void createDisplayPass() 
 {
@@ -241,7 +211,6 @@ int main() {
 
 	createDeferredPass();
 	createDisplayPass();
-	createDepthBuffer();
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -263,22 +232,6 @@ int main() {
 			glm::vec3(lightDirection), //light direction
 			glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-		//RENDER DEPTH TO FBO
-		//================================
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-
-		glBindFramebuffer(GL_FRAMEBUFFER, depthFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
-		glCullFace(GL_FRONT);
-
-		shadowShader.use();
-		shadowShader.setMat4("_Model", monkeyTransform.modelMatrix());
-		shadowShader.setMat4("_ViewProjection", lightSpaceMatrix);
-		monkeyModel.draw();
-
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		//RENDER
 		//================================
@@ -355,6 +308,8 @@ int main() {
 
 		lightingShader.setVec3("_AmbientModifier", ambientModifier);
 
+		lightingShader.setMat4("LightSpaceMatrix", lightSpaceMatrix);
+
 		lightingShader.setInt("gPosition", 0);
 		lightingShader.setInt("gNormals", 1);
 		lightingShader.setInt("gAlbedo", 2);
@@ -398,8 +353,8 @@ void drawUI() {
 	ImGui::Image((ImTextureID)deferred.albedo, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::Text("Deferred Depth");
 	ImGui::Image((ImTextureID)deferred.depth, windowSize, ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::Text("Depth");
-	ImGui::Image((ImTextureID)depthMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
+	//ImGui::Text("Depth");
+	//ImGui::Image((ImTextureID)depthMap, windowSize, ImVec2(0, 1), ImVec2(1, 0));
 	ImGui::End();
 
 	ImGui::Render();
