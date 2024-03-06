@@ -325,6 +325,37 @@ int main() {
 		lightingShader.setInt("gNormals", 1);
 		lightingShader.setInt("gAlbedo", 2);
 
+		//Create Point Lights
+		for (int i = 0; i < MAX_POINT_LIGHTS; i++) 
+		{
+			//position
+			int x, y, z;
+			x = rand() % 10 + 1;
+			y = rand() % 10 + 1;
+			z = rand() % 10 + 1;
+
+			pointLights[i].position = glm::vec3(x,y,z);
+
+			//color
+			int r, g, b;
+			r = rand() % 255 + 1;
+			g = rand() % 255 + 1;
+			b = rand() % 255 + 1;
+
+			pointLights[i].color = glm::vec4(r,g,b,1.0);
+
+			pointLights[i].radius = 10;
+		}
+
+		//Set Point Lights
+		for (int i = 0; i < MAX_POINT_LIGHTS; i++) 
+		{
+			std::string prefix = "_PointLights["+ std::to_string(i) + "].";
+			lightingShader.setVec3(prefix+"position",pointLights[i].position);
+			lightingShader.setVec3(prefix+"color",pointLights[i].color );
+			lightingShader.setFloat(prefix+"radius",pointLights[i].radius);
+		}
+
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 
