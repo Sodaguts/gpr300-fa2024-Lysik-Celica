@@ -67,6 +67,40 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 	return shadow;
 }
 
+struct PointLight
+{
+	vec3 position;
+	float radius;
+	vec4 color;
+};
+
+#define MAX_POINT_LIGHTS 64
+uniform PointLight _MainLight;
+uniform PointLight _PointLights[MAX_POINT_LIGHTS];
+
+float attenuateLinear(float _distance, float _radius)
+{
+	return clamp(((_radius - _distance)/_radius), 0.0,1.0);
+}
+
+vec3 calcPointLight(PointLight light, vec3 _normal)
+{
+	vec3 diff = light.position - texture(gPosition,TexCoords).rgb;
+	//direction toward light position
+	vec3 toLight = normalize(diff);
+	//TODO: usual blinn-phong calculations for diffuse + specular
+	float diffuseFactor = max(dot(_normal, toLight), 1.0);
+	vec3 toEye = normalize(_EyePos - texture(gPosition,TexCoords).rgb);
+
+	vec3 h = normalize(toLight + toEye);
+	float specularFactor = pow(max(dot(_normal, h), 0.0),0.01);
+	vec4 lightColor = (diffuseFactor + specularFactor) * light.color;
+	float d = length(diff);
+	lightColor *= attenuateLinear(d, light.radius);
+	return lightColor.rgb; //changing it to a vec3 but idk why this function is a vec3 when color is a vec4 in the first place
+}
+
+
 vec3 calculateLighting(vec3 position, vec3 normal, vec3 albedo)
 {
 	vec3 toLight = -_LightDirection;
@@ -76,10 +110,10 @@ vec3 calculateLighting(vec3 position, vec3 normal, vec3 albedo)
 	vec3 h = normalize(toLight + toEye);
 	float specularFactor = pow(max(dot(normal, h), 0.0),_Material.Shininess);
 
-	float shadow = ShadowCalculation(FragPosLightSpace);
+	//float shadow = ShadowCalculation(FragPosLightSpace);
 
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
-	lightColor += (_AmbientColor + (1.0 - shadow))  * _Material.Ka;
+	lightColor += (_AmbientColor)  * _Material.Ka; //For shadows you would take the ambient color and add (1.0 - shadow)
 	return albedo * lightColor;
 }
 
@@ -88,6 +122,16 @@ void main()
 	vec3 Position = texture(gPosition, TexCoords).rgb;
 	vec3 Normal = texture(gNormals, TexCoords).rgb;
 	vec3 Albedo = texture(gAlbedo, TexCoords).rgb;
+
+	//Point Light stuff
+
+	vec3 totalLight = vec3(0);
+	totalLight += calculateLighting(Position,Normal,Albedo);
+	for(int i = 0; i<MAX_POINT_LIGHTS; i++)
+	{
+		totalLight += calcPointLight(_PointLights[i], Normal);
+	}
+	
 	
 	FragColor = vec4(calculateLighting(Position, Normal, Albedo),1.0);
 }

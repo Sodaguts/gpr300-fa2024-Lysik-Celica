@@ -179,6 +179,17 @@ int main() {
 	ew::Mesh plane = ew::createPlane(500,500,500);
 	ew::Transform planeTransform;
 
+	//Adding more lights
+	struct PointLight 
+	{
+		glm::vec3 position;
+		float radius;
+		glm::vec4 color;
+	};
+
+	const int MAX_POINT_LIGHTS = 64;
+	PointLight pointLights[MAX_POINT_LIGHTS];
+
 	//plane
 	float planeVertices[] =
 	{
