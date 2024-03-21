@@ -22,6 +22,8 @@ void main()
 	vec3 albedo = texture(_gAlbedo, fs_in.TexCoord).rgb;
 	vec3 normal = texture(_gWorldNormal, fs_in.TexCoord).rgb;
 
+
+
 	// Calculate Lighting...
 	vec3 objectColor = worldPos + albedo + normal;
 	vec3 lightColor = vec3(1.0,1.0,1.0);

@@ -54,9 +54,9 @@ struct Material
 
 struct background_rgba 
 {
-	float red = 0.3;
-	float green = 0.4;
-	float blue = 0.8;
+	float red = 0.0;
+	float green = 0.0;
+	float blue = 0.0;
 	float alpha = 1.0;
 }bg_rgba;
 
@@ -156,7 +156,7 @@ void createDisplayPass()
 }
 
 int main() {
-	GLFWwindow* window = initWindow("Assignment 0", screenWidth, screenHeight);
+	GLFWwindow* window = initWindow("Assignment 3", screenWidth, screenHeight);
 
 	ew::Shader shader = ew::Shader("assets/lit.vert", "assets/lit.frag");
 	ew::Model monkeyModel = ew::Model("assets/suzanne.obj");
@@ -171,6 +171,8 @@ int main() {
 
 	ew::Shader geometryShader = ew::Shader("assets/geometry.vert", "assets/geometry.frag");
 	ew::Shader lightingShader = ew::Shader("assets/lighting.vert", "assets/lighting.frag");
+
+
 
 	ew::Shader shadowShader = ew::Shader("assets/depthShader.vert","assets/depthShader.frag");
 
@@ -278,8 +280,6 @@ int main() {
 
 		//draw plane
 		glBindTextureUnit(0, brickTexture);
-		/*geometryShader.setMat4("_Model", planeTransform.modelMatrix());
-		plane.draw();*/
 		geometryShader.setMat4("_Model", glm::mat4(1.0f));
 		glBindVertexArray(planeVAO);
 		glDrawArrays(GL_TRIANGLES,0,6);
@@ -303,6 +303,7 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		//lighting pass
+
 		glBindVertexArray(quadVAO);
 		glBindTextureUnit(0, deferred.world_position);
 		glBindTextureUnit(1, deferred.world_normal);
