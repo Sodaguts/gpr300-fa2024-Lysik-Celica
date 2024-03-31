@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public class Splines : MonoBehaviour
@@ -18,6 +19,7 @@ public class Splines : MonoBehaviour
 
     [SerializeField] Transform Trace;
 
+    public float amountOfPoints = 3;
     public float lerpValue = 0.0f;
 
     private void Update()
@@ -90,10 +92,20 @@ public class Splines : MonoBehaviour
 
     private void drawTraceLine() 
     {
+        float traceLerpValue = 0.0f;
+        float targetLerpValue = 1 / amountOfPoints;
         if (point1 != null && Trace != null) 
         {
             Gizmos.color = Color.black;
-            //Gizmos.DrawLine(point1.position, Trace.position);
+            Vector3 midPoint = Vector3.Lerp(point1.position, A.position, 0.5f);
+            Vector3 midPoint2 = Vector3.Lerp(midPoint, D.position, 0.5f);
+            Vector3 midPoint3 = Vector3.Lerp(midPoint2, Trace.position, 0.5f);
+
+            Gizmos.DrawLine(point1.position, midPoint);
+            Gizmos.DrawLine(midPoint, midPoint2);
+            Gizmos.DrawLine(midPoint2, midPoint3);
+            Gizmos.DrawLine(midPoint3, Trace.position);
+
         }
     }
 }

@@ -477,7 +477,8 @@ MonoBehaviour:
   D: {fileID: 718912598}
   E: {fileID: 51906976}
   Trace: {fileID: 948505320}
-  lerpValue: 0.5
+  amountOfPoints: 3
+  lerpValue: -0.21
 --- !u!4 &494465531
 Transform:
   m_ObjectHideFlags: 0
