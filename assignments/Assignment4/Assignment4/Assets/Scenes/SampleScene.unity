@@ -477,7 +477,11 @@ MonoBehaviour:
   D: {fileID: 718912598}
   E: {fileID: 51906976}
   Trace: {fileID: 948505320}
-  amountOfPoints: 3
+  tracePositions:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
   lerpValue: 0
 --- !u!4 &494465531
 Transform:

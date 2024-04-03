@@ -24,8 +24,27 @@ public class Splines : MonoBehaviour
     Vector3 previousTracePosition3;
     Vector3 previousTracePosition4;
 
-    public float amountOfPoints = 3;
+    public Vector3[] tracePositions;
+
     public float lerpValue = 0.0f;
+
+    public int amountOfPoints = 4;
+    int amountOfPointsCount = 0;
+    public List<Vector3> tracePoints = new List<Vector3>();
+
+    private void fillTracePointArray() 
+    {
+        
+        for (int i = 0; i < amountOfPoints; i++) 
+        {
+            //tracePoints.Add(Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(point1.position, point2.position, lerpValue - (float)(i / amountOfPoints)), Vector3.Lerp(point2.position, point3.position, lerpValue - (float)(i / amountOfPoints)), lerpValue - (float)(i / amountOfPoints)), Vector3.Lerp(Vector3.Lerp(point2.position, point3.position, lerpValue - (float)(i / amountOfPoints)), Vector3.Lerp(point3.position, point4.position, lerpValue - (float)(i / amountOfPoints)), lerpValue - (float)(i / amountOfPoints)), lerpValue - (float)(i / amountOfPoints)));
+        }
+    }
+
+    private void Start()
+    {
+
+    }
 
     private void Update()
     {
@@ -52,6 +71,8 @@ public class Splines : MonoBehaviour
             E.position = Vector3.Lerp(B.position, C.position, lerpValue);
         }
 
+        fillTracePointArray();
+
         if (Trace != null) 
         {
             previousTracePosition4 = Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(point1.position, point2.position, lerpValue - 0.8f), Vector3.Lerp(point2.position, point3.position, lerpValue - 0.8f), lerpValue - 0.8f), Vector3.Lerp(Vector3.Lerp(point2.position, point3.position, lerpValue - 0.8f), Vector3.Lerp(point3.position, point4.position, lerpValue - 0.8f), lerpValue - 0.8f), lerpValue - 0.8f);
@@ -59,16 +80,7 @@ public class Splines : MonoBehaviour
             previousTracePosition2 = Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(point1.position, point2.position, lerpValue - 0.3f), Vector3.Lerp(point2.position, point3.position, lerpValue - 0.3f), lerpValue - 0.3f), Vector3.Lerp(Vector3.Lerp(point2.position, point3.position, lerpValue - 0.3f), Vector3.Lerp(point3.position, point4.position, lerpValue - 0.3f), lerpValue - 0.3f), lerpValue - 0.3f);
             previousTracePosition = Vector3.Lerp(Vector3.Lerp(Vector3.Lerp(point1.position, point2.position, lerpValue-0.1f), Vector3.Lerp(point2.position, point3.position, lerpValue-0.1f), lerpValue-0.1f), Vector3.Lerp(Vector3.Lerp(point2.position, point3.position, lerpValue-0.1f), Vector3.Lerp(point3.position, point4.position, lerpValue-0.1f), lerpValue-0.1f), lerpValue - 0.1f);
             Trace.position = Vector3.Lerp(D.position, E.position, lerpValue); // P(t) = (-t^3 + 3t^2 - 3t + 1) + (3t^3 - 6t^2 + 3t) + (-3t^3 + 3t^2) + (t^3)
-            //Trace.position =
-            //    (-point1.position * Mathf.Pow(lerpValue, 3) + (3 * point1.position * Mathf.Pow(lerpValue, 2)) - (3 * point1.position * lerpValue) + point1.position) +
-            //    ((3 * point2.position * Mathf.Pow(lerpValue, 3)) - (6 * point2.position * Mathf.Pow(lerpValue, 2)) + (3 * point2.position * lerpValue)) +
-            //    ((-3 * point3.position * Mathf.Pow(lerpValue, 3)) + (3 * point3.position * Mathf.Pow(lerpValue, 2))) +
-            //    (point4.position * Mathf.Pow(lerpValue, 3));
-            //previousTracePosition =
-            //    (-point1.position * Mathf.Pow(lerpValue-0.5f, 3) + (3 * point1.position * Mathf.Pow(lerpValue-0.5f, 2)) - (3 * point1.position * (lerpValue-0.5f)) + point1.position) +
-            //    ((3 * point2.position * Mathf.Pow(lerpValue-0.5f, 3)) - (6 * point2.position * Mathf.Pow(lerpValue-0.5f, 2)) + (3 * point2.position * (lerpValue-0.5f))) +
-            //    ((-3 * point3.position * Mathf.Pow(lerpValue-0.5f, 3)) + (3 * point3.position * Mathf.Pow(lerpValue-0.5f, 2))) +
-            //    (point4.position * Mathf.Pow(lerpValue-0.5f, 3));
+
         }
     }
     private void OnDrawGizmosSelected()
@@ -112,29 +124,15 @@ public class Splines : MonoBehaviour
 
     private void drawTraceLine() 
     {
-        //float traceLerpValue = 0.0f;
-        //float targetLerpValue = 1 / amountOfPoints;
-        //if (point1 != null && Trace != null) 
-        //{
-        //    Gizmos.color = Color.black;
-        //    Vector3 midPoint = Vector3.Lerp(point1.position, A.position, 0.5f);
-        //    Vector3 midPoint2 = Vector3.Lerp(midPoint, D.position, 0.5f);
-        //    Vector3 midPoint3 = Vector3.Lerp(midPoint2, Trace.position, 0.5f);
-
-        //    Gizmos.DrawLine(point1.position, midPoint);
-        //    Gizmos.DrawLine(midPoint, midPoint2);
-        //    Gizmos.DrawLine(midPoint2, midPoint3);
-        //    Gizmos.DrawLine(midPoint3, Trace.position);
-
-        //}
         Gizmos.color = Color.black;
-        float amountOfPoints = 3;
-        Vector3 prevTracePosition = Vector3.Lerp(point1.position, D.position, 0.5f);
         Vector3 currentTracePosition = Trace.position;
+
         Gizmos.DrawLine(point1.position, previousTracePosition4);
         Gizmos.DrawLine(previousTracePosition4, previousTracePosition3);
         Gizmos.DrawLine(previousTracePosition3, previousTracePosition2);
         Gizmos.DrawLine(previousTracePosition2, previousTracePosition);
         Gizmos.DrawLine(previousTracePosition, currentTracePosition);
+
+
     }
 }
