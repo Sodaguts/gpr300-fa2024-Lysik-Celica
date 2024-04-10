@@ -6,10 +6,10 @@ using UnityEngine;
 
 public class Splines : MonoBehaviour
 {
-    [SerializeField] Transform point1;
+    [SerializeField] public Transform startPoint;
     [SerializeField] Transform point2;
     [SerializeField] Transform point3;
-    [SerializeField] Transform point4;
+    [SerializeField] public Transform endPoint;
 
     [SerializeField] Transform A;
     [SerializeField] Transform B;
@@ -30,6 +30,11 @@ public class Splines : MonoBehaviour
 
     bool drawGizmosEnabled = false;
 
+    public void createNewSpine() 
+    {
+
+    }
+
     private void Start()
     {
         max_amountOfPoints = amountOfPoints;
@@ -48,7 +53,7 @@ public class Splines : MonoBehaviour
         _lerpValue = Mathf.Clamp(_lerpValue, 0.0f, 1.0f);
         if (A != null)
         {
-            A.position = Vector3.Lerp(point1.position, point2.position, _lerpValue);
+            A.position = Vector3.Lerp(startPoint.position, point2.position, _lerpValue);
         }
         if (B != null)
         {
@@ -56,7 +61,7 @@ public class Splines : MonoBehaviour
         }
         if (C != null)
         {
-            C.position = Vector3.Lerp(point3.position, point4.position, _lerpValue);
+            C.position = Vector3.Lerp(point3.position, endPoint.position, _lerpValue);
         }
 
         if (D != null)
@@ -83,7 +88,7 @@ public class Splines : MonoBehaviour
         for (int i = 0; i < amountOfPoints; i++)
         {
             currentLerpValue = currentLerpValue + pointLerpValue;
-            print(currentLerpValue);
+            //print(currentLerpValue);
             generateCurve(currentLerpValue, i);
         }
     }
@@ -91,7 +96,7 @@ public class Splines : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        drawBaseStructure(point1, point2, point3, point4);
+        drawBaseStructure(startPoint, point2, point3, endPoint);
         //drawBlueLines();
         //drawRedLines();
         drawTraceLine();
@@ -143,7 +148,7 @@ public class Splines : MonoBehaviour
                 }
                 else
                 {
-                    Gizmos.DrawLine(point1.position, currentTracePosition);
+                    Gizmos.DrawLine(startPoint.position, currentTracePosition);
                 }
 
             }
