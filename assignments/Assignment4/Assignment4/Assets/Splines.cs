@@ -2,13 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Unity.PlasticSCM.Editor.WebApi;
+using UnityEditor;
 using UnityEngine;
 
 public class Splines : MonoBehaviour
 {
     [SerializeField] public Transform startPoint;
-    [SerializeField] Transform point2;
-    [SerializeField] Transform point3;
+    [SerializeField] public Transform point2;
+    [SerializeField] public Transform point3;
     [SerializeField] public Transform endPoint;
 
     [SerializeField] Transform A;
@@ -94,7 +95,7 @@ public class Splines : MonoBehaviour
     }
 
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         drawBaseStructure(startPoint, point2, point3, endPoint);
         //drawBlueLines();
@@ -132,6 +133,7 @@ public class Splines : MonoBehaviour
             Gizmos.DrawLine(D.position, E.position);
         }
     }
+
 
     private void drawTraceLine() 
     {

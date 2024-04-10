@@ -7,7 +7,7 @@ public class SplineManager : MonoBehaviour
     [SerializeField] GameObject[] splineArray;
     [SerializeField] GameObject splineInstance;
     Vector3 knotPoint;
-    Vector3 DEFAULT_START_POINT = Vector3.zero;
+    Vector3 DEFAULT_START_POINT;
     [SerializeField] int numSplines = 2;
     int timesCreated = 0;
 
@@ -16,6 +16,7 @@ public class SplineManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        DEFAULT_START_POINT = GetComponent<Transform>().position;
         splineArray = new GameObject[numSplines];
         fillArray(splineInstance);
     }
@@ -31,17 +32,14 @@ public class SplineManager : MonoBehaviour
                 //set the start point of the new spline to the end point of the previous spline (knotPoint)
                 if (i > 0)
                 {
-                    splineReference.startPoint = splineArray[i - 1].GetComponent<Splines>().endPoint;
-                    knotPoint = splineReference.startPoint.position;
+                    splineReference.endPoint.position = splineArray[i - 1].GetComponent<Splines>().endPoint.position;
+                    splineReference.startPoint.position = splineArray[i - 1].GetComponent<Splines>().endPoint.position + new Vector3(10,0,10);
                 }
-                else
-                {
-                    splineReference.startPoint.position = DEFAULT_START_POINT;
-                }
+
 
                 if (splineInstance != null)
                 {
-                    splineInstance.GetComponent<Splines>().startPoint = splineReference.startPoint;
+                    splineInstance.GetComponent<Splines>().startPoint.position = splineReference.startPoint.position;
                     Instantiate(splineInstance);
                     timesCreated++;
                 }
@@ -53,6 +51,10 @@ public class SplineManager : MonoBehaviour
     {
         for (int i = 0; i < splineArray.Length; i++) 
         {
+            reference.GetComponent<Splines>().startPoint.position = DEFAULT_START_POINT + new Vector3(0, 0, 9);
+            reference.GetComponent<Splines>().point2.position = DEFAULT_START_POINT;
+            reference.GetComponent<Splines>().point3.position = DEFAULT_START_POINT + new Vector3(9, 0, 9);
+            reference.GetComponent<Splines>().endPoint.position = DEFAULT_START_POINT + new Vector3(9, 0, 0);
             splineArray[i] = reference;
         }
     }
