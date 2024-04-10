@@ -19,21 +19,20 @@ public class Splines : MonoBehaviour
     [SerializeField] Transform E;
 
     [SerializeField] Transform Trace;
-    Vector3 previousTracePosition;
-    Vector3 previousTracePosition2;
-    Vector3 previousTracePosition3;
-    Vector3 previousTracePosition4;
 
     public Vector3[] tracePositions;
 
-    public float lerpValue = 0.0f;
+    public float lerpValue = 0.0f; // T
 
-    public int amountOfPoints = 4;
-    int amountOfPointsCount = 0;
+    public int amountOfPoints = 1000;
+    private int min_amountOfPoints = 1;
+    private int max_amountOfPoints;
+
     bool drawGizmosEnabled = false;
 
     private void Start()
     {
+        max_amountOfPoints = amountOfPoints;
         tracePositions = new Vector3[amountOfPoints];
         drawGizmosEnabled = true;
     }
@@ -41,6 +40,7 @@ public class Splines : MonoBehaviour
     private void Update()
     {
         fillTracePointArray();
+        amountOfPoints = Mathf.Clamp(amountOfPoints, min_amountOfPoints, max_amountOfPoints);
     }
 
     private void generateCurve(float _lerpValue, int index) 
