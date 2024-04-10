@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class SplineManager : MonoBehaviour
@@ -32,8 +33,11 @@ public class SplineManager : MonoBehaviour
                 //set the start point of the new spline to the end point of the previous spline (knotPoint)
                 if (i > 0)
                 {
-                    splineReference.endPoint.position = splineArray[i - 1].GetComponent<Splines>().endPoint.position;
-                    splineReference.startPoint.position = splineArray[i - 1].GetComponent<Splines>().endPoint.position + new Vector3(10,0,10);
+                    Splines prevSplineRef = splineArray[i - 1].GetComponent<Splines>();
+                    splineReference.startPoint.position = prevSplineRef.endPoint.position;
+                    splineReference.point2.position = new Vector3(prevSplineRef.point3.position.x, prevSplineRef.point3.position.y, prevSplineRef.point3.position.z * -1);
+                    splineReference.point3.position = prevSplineRef.point3.position + new Vector3(9,0,0);
+                    splineReference.endPoint.position = prevSplineRef.startPoint.position + new Vector3(9,0,0);
                 }
 
 

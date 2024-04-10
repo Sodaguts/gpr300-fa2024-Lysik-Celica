@@ -340,7 +340,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   splineArray: []
   splineInstance: {fileID: 6040986188689179452, guid: fa7b9f227823c424d948b2b3013772bf, type: 3}
-  numSplines: 2
+  numSplines: 3
 --- !u!4 &1945144767
 Transform:
   m_ObjectHideFlags: 0
