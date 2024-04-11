@@ -43,6 +43,8 @@ public class SplineManager : MonoBehaviour
                     {
                         knotInstance.transform.position = splineReference.startPoint.position;
                         knotReference = Instantiate(knotInstance);
+                        splineReference.setKnot(knotReference, splineReference.endPoint);
+                        prevSplineRef.setKnot(knotReference, prevSplineRef.startPoint);
                     }
                 }
 
