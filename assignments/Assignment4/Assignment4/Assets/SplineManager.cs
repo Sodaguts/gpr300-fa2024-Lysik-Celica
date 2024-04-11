@@ -8,7 +8,8 @@ public class SplineManager : MonoBehaviour
     [SerializeField] GameObject[] splineArray;
     [SerializeField] GameObject splineInstance;
     [SerializeField] GameObject knotInstance;
-    GameObject knotReference;
+    GameObject knotObject;
+    GameObject splineObject;
     Vector3 DEFAULT_START_POINT;
     [SerializeField] int numSplines = 2;
     int timesCreated = 0;
@@ -42,9 +43,7 @@ public class SplineManager : MonoBehaviour
                     if (knotInstance != null)
                     {
                         knotInstance.transform.position = splineReference.startPoint.position;
-                        knotReference = Instantiate(knotInstance);
-                        splineReference.setKnot(knotReference, splineReference.endPoint);
-                        prevSplineRef.setKnot(knotReference, prevSplineRef.startPoint);
+                        knotObject = Instantiate(knotInstance);
                     }
                 }
 
@@ -52,7 +51,11 @@ public class SplineManager : MonoBehaviour
                 if (splineInstance != null)
                 {
                     splineInstance.GetComponent<Splines>().startPoint.position = splineReference.startPoint.position;
-                    Instantiate(splineInstance);
+                    splineObject = Instantiate(splineInstance);
+                    if (knotObject != null) 
+                    {
+                        splineObject.GetComponent<Splines>().point2.parent = knotObject.transform;
+                    }
                     timesCreated++;
                 }
             }
