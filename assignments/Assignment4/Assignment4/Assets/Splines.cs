@@ -31,16 +31,29 @@ public class Splines : MonoBehaviour
 
     bool drawGizmosEnabled = false;
 
-    public void createNewSpine() 
-    {
+    GameObject[] knotArray;
 
-    }
 
     private void Start()
     {
         max_amountOfPoints = amountOfPoints;
         tracePositions = new Vector3[amountOfPoints];
         drawGizmosEnabled = true;
+
+        FindAllKnots();
+        for (int i = 0; i < knotArray.Length; i++) 
+        {
+
+        }
+
+    }
+
+    private void FindAllKnots() 
+    {
+        if (knotArray == null) 
+        {
+            knotArray = GameObject.FindGameObjectsWithTag("Knot");
+        }
     }
 
     private void Update()

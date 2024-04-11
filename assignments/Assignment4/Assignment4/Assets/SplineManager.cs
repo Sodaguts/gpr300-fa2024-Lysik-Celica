@@ -7,12 +7,11 @@ public class SplineManager : MonoBehaviour
 {
     [SerializeField] GameObject[] splineArray;
     [SerializeField] GameObject splineInstance;
-    Vector3 knotPoint;
+    [SerializeField] GameObject knotInstance;
+    GameObject knotReference;
     Vector3 DEFAULT_START_POINT;
     [SerializeField] int numSplines = 2;
     int timesCreated = 0;
-
-    //TODO: have a way to generate a new spline on click at a specific point
 
     // Start is called before the first frame update
     void Start()
@@ -33,11 +32,18 @@ public class SplineManager : MonoBehaviour
                 //set the start point of the new spline to the end point of the previous spline (knotPoint)
                 if (i > 0)
                 {
+
                     Splines prevSplineRef = splineArray[i - 1].GetComponent<Splines>();
                     splineReference.startPoint.position = prevSplineRef.endPoint.position;
-                    splineReference.point2.position = new Vector3(prevSplineRef.point3.position.x, prevSplineRef.point3.position.y, prevSplineRef.point3.position.z * -1);
+                    splineReference.point2.position = new Vector3(prevSplineRef.point3.position.x, prevSplineRef.point3.position.y, prevSplineRef.point3.position.z * -0.5f);
                     splineReference.point3.position = prevSplineRef.point3.position + new Vector3(9,0,0);
                     splineReference.endPoint.position = prevSplineRef.startPoint.position + new Vector3(9,0,0);
+
+                    if (knotInstance != null)
+                    {
+                        knotInstance.transform.position = splineReference.startPoint.position;
+                        knotReference = Instantiate(knotInstance);
+                    }
                 }
 
 
