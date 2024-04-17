@@ -95,6 +95,10 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK); //back face culling
 	glEnable(GL_DEPTH_TEST); // Depth testing
+	glDepthFunc(GL_LESS);
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
@@ -148,11 +152,14 @@ int main() {
 		deltaTime = time - prevFrameTime;
 		prevFrameTime = time;
 
+		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
+		cameraController.move(window, &camera, deltaTime);
+
+		float scale = 1.1f;
+
 		//RENDER
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-		glEnable(GL_DEPTH_TEST);
-
 		glClearColor(bg_rgba.red,bg_rgba.green,bg_rgba.blue, bg_rgba.alpha);
 		if (invertColors == true) 
 		{
@@ -163,13 +170,17 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, goldTexture);
 
-		//ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
+		glEnable(GL_DEPTH_TEST);
+		//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+		glStencilMask(0xFF);
 
+		//ambientModifier = glm::vec3(bg_rgba.red, bg_rgba.blue, bg_rgba.green);
 		singleColorShader.use();
 		singleColorShader.setInt("_MainTex", 0);
-		singleColorShader.setMat4("_Model", glm::mat4(1.0f));
+		singleColorShader.setMat4("_Model", monkeyTransform.modelMatrix());
 		singleColorShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
 		singleColorShader.setVec3("_EyePos", camera.position);
+
 
 		shader.use();
 		shader.setInt("_MainTex", 0);
@@ -205,28 +216,44 @@ int main() {
 		}
 		shader.setVec3("_LightPos", lightPosition);
 
-		monkeyTransform.rotation = glm::rotate(monkeyTransform.rotation, deltaTime, glm::vec3(0.0, 1.0, 0.0));
-		glm::vec3(0.0, 1.0, 0.0);
+		//1st render pass - write to the stencil buffer
+
+
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
-		cameraController.move(window, &camera, deltaTime);
 		monkeyModel.draw();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//2nd pass - scale versions of objects and disable stencil writing.
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 
-		glClearColor(bg_rgba.red, bg_rgba.green, bg_rgba.blue, bg_rgba.alpha);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		singleColorShader.use();
+		monkeyTransform.scale = glm::vec3(scale, scale, scale);
+		singleColorShader.setMat4("_Model", monkeyTransform.modelMatrix());
+		monkeyModel.draw();
+
+		shader.use();
+		monkeyTransform.scale = glm::vec3(1,1, 1);
+		shader.setMat4("_Model", monkeyTransform.modelMatrix());
+		monkeyModel.draw();
+
+
+		glStencilMask(0xFF);
+		glStencilFunc(GL_ALWAYS, 0, 0xFF);
+		//glEnable(GL_DEPTH_TEST);
+
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		postShader.use();
 		postShader.setInt("screenTexture", 0);
 
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-		
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, colorBuffer);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
 
 		drawUI();
 

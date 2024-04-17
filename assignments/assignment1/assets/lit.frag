@@ -22,6 +22,10 @@ uniform vec3 _LightPos = vec3(0.0,1.0,0.0);
 //uniform vec3 _AmbientModifier = vec3(1.0, 1.0, 1.0);
 uniform int _isInverted = 0;
 
+//outline variables
+uniform bool _isOutlined = false;
+vec4 texPosition = texture(_MainTex,fs_in.TexCoord);
+
 //gamma correction
 uniform int _gamma = 0;
 
@@ -66,6 +70,13 @@ void main()
 
 	vec3 totalColor = objectColor * lightColor;
 	vec3 vecOne = vec3(1,1,1);
+
+	//Outline Test
+	if(_isOutlined)
+	{
+		
+	}
+
 	if(_isInverted == 1)
 	{
 		if(_gamma == 1)
