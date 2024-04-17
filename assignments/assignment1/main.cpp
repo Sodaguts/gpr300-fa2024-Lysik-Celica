@@ -218,7 +218,6 @@ int main() {
 
 		//1st render pass - write to the stencil buffer
 
-
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
 		monkeyModel.draw();
 
@@ -233,7 +232,12 @@ int main() {
 		monkeyModel.draw();
 
 		shader.use();
-		monkeyTransform.scale = glm::vec3(1,1, 1);
+		monkeyTransform.scale = glm::vec3(1, 1, 1);
+		shader.setMat4("_Model", monkeyTransform.modelMatrix());
+		monkeyModel.draw();
+
+		shader.use();
+		monkeyTransform.scale = glm::vec3(1, 1, 1);
 		shader.setMat4("_Model", monkeyTransform.modelMatrix());
 		monkeyModel.draw();
 
@@ -241,8 +245,6 @@ int main() {
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
 		//glEnable(GL_DEPTH_TEST);
-
-
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
