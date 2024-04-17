@@ -40,20 +40,25 @@ public class Splines : MonoBehaviour
         tracePositions = new Vector3[amountOfPoints];
         drawGizmosEnabled = true;
 
-        FindAllKnots();
-        for (int i = 0; i < knotArray.Length; i++) 
-        {
-
-        }
-
     }
 
-    private void FindAllKnots() 
+    public void setKnot(GameObject knot, Transform point) 
     {
-        if (knotArray == null) 
-        {
-            knotArray = GameObject.FindGameObjectsWithTag("Knot");
-        }
+        //if (knot != null)
+        //{
+        //    if (point == startPoint)
+        //    {
+        //        startPoint.parent = knot.transform;
+        //    }
+        //    else if (point == endPoint) 
+        //    {
+        //        endPoint.parent = knot.transform;
+        //    }
+        //}
+        //else 
+        //{
+        //    print("could not knot :( ");
+        //}
     }
 
     private void Update()

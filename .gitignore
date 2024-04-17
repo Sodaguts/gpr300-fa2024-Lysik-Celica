@@ -37,3 +37,4 @@ out/
 build/
 .vs/
 bin-*/
+/assignments/Assignment4/Assignment4/Assets/SplineManager.cs.meta
