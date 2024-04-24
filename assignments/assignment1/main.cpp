@@ -225,11 +225,13 @@ int main() {
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
+		//glEnable(GL_DEPTH_TEST);
 
 		singleColorShader.use();
 		monkeyTransform.scale = glm::vec3(scale, scale, scale);
 		singleColorShader.setMat4("_Model", monkeyTransform.modelMatrix());
 		monkeyModel.draw();
+
 
 		shader.use();
 		monkeyTransform.scale = glm::vec3(1, 1, 1);
@@ -244,10 +246,10 @@ int main() {
 
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
-		//glEnable(GL_DEPTH_TEST);
+
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+		//glEnable(GL_DEPTH_TEST);
 		postShader.use();
 		postShader.setInt("screenTexture", 0);
 
