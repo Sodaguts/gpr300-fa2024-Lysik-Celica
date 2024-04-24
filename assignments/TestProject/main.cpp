@@ -174,7 +174,7 @@ int main() {
 		monkeyModel.draw();
 
 
-		drawUI();
+		
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST);
@@ -188,6 +188,8 @@ int main() {
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		drawUI();
 
 		glfwSwapBuffers(window);
 	}
