@@ -44,9 +44,9 @@ struct Material
 
 struct background_rgba 
 {
-	float red = 0.3;
-	float green = 0.4;
-	float blue = 0.8;
+	float red = 0.9;
+	float green = 1.0;
+	float blue = 1.0;
 	float alpha = 1.0;
 }bg_rgba;
 

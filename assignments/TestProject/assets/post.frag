@@ -38,6 +38,17 @@ void main()
 	}
 
 	vec3 rgb = texture(screenTexture, TexCoords).rgb;
+	vec3 finalColor;
+	if(col.r > 0 || col.g > 0)
+	{
+		finalColor = vec3(0,0,0);
+	}
+	else
+	{
+		finalColor = rgb;
+	}
+
+
 	vec4 position = texture(screenTexture, TexCoords);
-	FragColor = vec4(col, 1.0);
+	FragColor = vec4(finalColor, 1.0);
 }
