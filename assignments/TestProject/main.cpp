@@ -34,6 +34,8 @@ ew::CameraController cameraController;
 
 void resetCamera(ew::Camera* camera, ew::CameraController* controller);
 
+glm::vec3 outlineColor;
+
 struct Material
 {
 	float Ka = 1.0;
@@ -184,6 +186,7 @@ int main() {
 
 		postShader.use();
 		postShader.setInt("screenTexture", 0);
+		postShader.setVec3("outlineColor", outlineColor);
 
 		glBindVertexArray(quadVAO);
 		glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
@@ -219,6 +222,11 @@ void drawUI() {
 	if (ImGui::CollapsingHeader("Background Color"))
 	{
 		ImGui::ColorEdit4("Background Color", &bg_rgba.red);
+	}
+
+	if (ImGui::CollapsingHeader("Outline"))
+	{
+		ImGui::ColorEdit3("Color", &outlineColor.r);
 	}
 
 	ImGui::End();

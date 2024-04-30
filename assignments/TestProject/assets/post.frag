@@ -5,6 +5,7 @@ out vec4 FragColor;
 
 uniform sampler2D screenTexture;
 const float offset = 1.0 / 300.0;
+uniform vec3 outlineColor;
 
 void main() 
 {
@@ -39,15 +40,15 @@ void main()
 
 	vec3 rgb = texture(screenTexture, TexCoords).rgb;
 	vec3 finalColor;
-	if(col.r > 0 || col.g > 0)
+	normalize(col);
+	if(col.r >= -0 && col.g >= 0 && col.b >= 0)
 	{
-		finalColor = vec3(0,0,0);
+		finalColor = outlineColor;
 	}
 	else
 	{
 		finalColor = rgb;
 	}
-
 
 	vec4 position = texture(screenTexture, TexCoords);
 	FragColor = vec4(finalColor, 1.0);
