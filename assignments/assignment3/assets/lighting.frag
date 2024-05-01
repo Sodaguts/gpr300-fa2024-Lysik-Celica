@@ -12,7 +12,7 @@ uniform layout(location = 3) sampler2D gDepth; // shadow map
 
 uniform vec3 _EyePos;
 uniform vec3 _LightDirection = vec3(0.0, -1.0, 0.0);
-uniform vec3 _LightColor = vec3(0.8,0.0,0.4);
+uniform vec3 _LightColor = vec3(1.0,1.0,1.0);
 uniform vec3 _AmbientColor = vec3(0.3, 0.4, 0.46);
 
 uniform vec3 _LightPos = vec3(0.0, 1.0, 0.0);
@@ -113,7 +113,7 @@ vec3 calculateLighting(vec3 position, vec3 normal, vec3 albedo)
 	float shadow = ShadowCalculation(FragPosLightSpace);
 
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
-	lightColor += (_AmbientColor + (1.0 - shadow))  * _Material.Ka; //For shadows you would take the ambient color and add (1.0 - shadow)
+	lightColor += (_AmbientColor)  * _Material.Ka; //For shadows you would take the ambient color and add (1.0 - shadow)
 	return albedo * lightColor;
 }
 
