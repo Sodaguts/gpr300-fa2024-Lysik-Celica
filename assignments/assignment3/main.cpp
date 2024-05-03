@@ -33,6 +33,12 @@ struct
 	GLuint depth;
 } deferred;
 
+struct 
+{
+	GLuint fbo;
+
+}gBuffer;
+
 //Global state
 int screenWidth = 1080;
 int screenHeight = 720;
@@ -124,6 +130,7 @@ void createDeferredPass(void)
 }
 
 
+
 void createDisplayPass() 
 {
 	float quadVertices[] =
@@ -172,7 +179,7 @@ int main() {
 	ew::Shader geometryShader = ew::Shader("assets/geometry.vert", "assets/geometry.frag");
 	ew::Shader lightingShader = ew::Shader("assets/lighting.vert", "assets/lighting.frag");
 
-
+	ew::Shader lightOrbShader = ew::Shader("assets/lightOrb.vert", "assets/lightOrb.frag");
 
 	ew::Shader shadowShader = ew::Shader("assets/depthShader.vert","assets/depthShader.frag");
 
@@ -180,6 +187,9 @@ int main() {
 
 	ew::Mesh plane = ew::createPlane(500,500,500);
 	ew::Transform planeTransform;
+
+	ew::Mesh lightOrbMesh = ew::createSphere(2,50);
+	ew::Transform orbTransform;
 
 	//Adding more lights
 	struct PointLight 
@@ -224,6 +234,27 @@ int main() {
 
 	createDeferredPass();
 	createDisplayPass();
+
+	for (int i = 0; i < MAX_POINT_LIGHTS; i++)
+	{
+		//position
+		int x, y, z;
+		x = rand() % 10 + 1;
+		y = rand() % 10 + 1;
+		z = rand() % 10 + 1;
+
+		pointLights[i].position = glm::vec3(x, y, z);
+
+		//color
+		float r, g, b;
+		r = ((rand() % 101) / 100.0);
+		g = ((rand() % 101) / 100.0);
+		b = ((rand() % 101) / 100.0);
+
+		pointLights[i].color = glm::vec4(r, g, b, 1.0);
+
+		pointLights[i].radius = 10;
+	}
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
@@ -299,6 +330,19 @@ int main() {
 			}
 		}
 
+		lightOrbShader.use();
+		lightOrbShader.setMat4("_ViewProjection", camera.projectionMatrix() * camera.viewMatrix());
+		for (int i = 0; i < MAX_POINT_LIGHTS; i++)
+		{
+			glm::mat4 m = glm::mat4(1.0f);
+			m = glm::translate(m, pointLights[i].position);
+			m = glm::scale(m, glm::vec3(0.2f));
+
+			lightOrbShader.setMat4("_Model", m);
+			lightOrbShader.setVec3("_Color", pointLights[i].color);
+			lightOrbMesh.draw();
+		}
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -327,38 +371,20 @@ int main() {
 		lightingShader.setInt("gAlbedo", 2);
 
 		//Create Point Lights
-		for (int i = 0; i < MAX_POINT_LIGHTS; i++) 
-		{
-			//position
-			int x, y, z;
-			x = rand() % 10 + 1;
-			y = rand() % 10 + 1;
-			z = rand() % 10 + 1;
-
-			pointLights[i].position = glm::vec3(x,y,z);
-
-			//color
-			int r, g, b;
-			r = rand() % 255 + 1;
-			g = rand() % 255 + 1;
-			b = rand() % 255 + 1;
-
-			pointLights[i].color = glm::vec4(r,g,b,1.0);
-
-			pointLights[i].radius = 10;
-		}
+		
 
 		//Set Point Lights
-		for (int i = 0; i < MAX_POINT_LIGHTS; i++) 
+		for (int i = 0; i < MAX_POINT_LIGHTS; i++)
 		{
-			std::string prefix = "_PointLights["+ std::to_string(i) + "].";
-			lightingShader.setVec3(prefix+"position",pointLights[i].position);
-			lightingShader.setVec3(prefix+"color",pointLights[i].color );
-			lightingShader.setFloat(prefix+"radius",pointLights[i].radius);
+			std::string prefix = "_PointLights[" + std::to_string(i) + "].";
+			lightingShader.setVec3(prefix + "position", pointLights[i].position);
+			lightingShader.setVec3(prefix + "color", pointLights[i].color);
+			lightingShader.setFloat(prefix + "radius", pointLights[i].radius);
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+		
 
 		drawUI();
 
