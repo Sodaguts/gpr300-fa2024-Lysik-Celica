@@ -27,45 +27,6 @@ struct Material
 };
 uniform Material _Material;
 
-float ShadowCalculation(vec4 fragPosLightSpace)
-{
-	
-	vec3 in_normals = texture(gNormals, TexCoords).rgb;
-	vec3 in_position = texture(gPosition, TexCoords).rgb;
-
-	//perform perspective divide
-	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	//transform 0,1 range
-	projCoords = projCoords * 0.5 + 0.5;
-
-	float closestDepth = texture(gDepth, projCoords.xy).r;
-	float currentDepth = projCoords.z;
-
-	vec3 normal = normalize(in_normals);
-	vec3 lightDir = normalize(_LightPos - in_position);
-
-	float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-	
-	//PCF
-	vec2 texelSize = texelMod / textureSize(gDepth, 0);
-	for(int x = -1; x <= 1; ++x)
-	{
-		for(int y = -1; y <= 1; ++y)
-		{
-			float pcfDepth = texture(gDepth, projCoords.xy + vec2(x,y) * texelSize).r;
-			shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-		}
-	}
-	shadow /= 9.0;
-
-	if(projCoords.z > 1.0)
-	{
-		shadow = 0.0;
-	}
-
-	return shadow;
-}
 
 struct PointLight
 {
@@ -89,10 +50,10 @@ vec3 calcPointLight(PointLight light, vec3 _normal)
 	//direction toward light position
 	vec3 toLight = normalize(diff);
 	//TODO: usual blinn-phong calculations for diffuse + specular
-	float diffuseFactor = max(dot(_normal, toLight), 1.0);
-	vec3 toEye = normalize(_EyePos - texture(gPosition,TexCoords).rgb);
+	float diffuseFactor = max(dot(_normal, toLight), 0.0);
+	//vec3 toEye = normalize(_EyePos - texture(gPosition,TexCoords).rgb);
 
-	vec3 h = normalize(toLight + toEye);
+	vec3 h = normalize(toLight + light.position);
 	float specularFactor = pow(max(dot(_normal, h), 0.0),0.01);
 	vec4 lightColor = (diffuseFactor + specularFactor) * light.color;
 	float d = length(diff);
@@ -110,8 +71,6 @@ vec3 calculateLighting(vec3 position, vec3 normal, vec3 albedo)
 	vec3 h = normalize(toLight + toEye);
 	float specularFactor = pow(max(dot(normal, h), 0.0),_Material.Shininess);
 
-	float shadow = ShadowCalculation(FragPosLightSpace);
-
 	vec3 lightColor = (_Material.Kd * diffuseFactor + _Material.Ks * specularFactor) * _LightColor;
 	lightColor += (_AmbientColor)  * _Material.Ka; //For shadows you would take the ambient color and add (1.0 - shadow)
 	return albedo * lightColor;
@@ -127,11 +86,12 @@ void main()
 
 	vec3 totalLight = vec3(0);
 	totalLight += calculateLighting(Position,Normal,Albedo);
-//	for(int i = 0; i<MAX_POINT_LIGHTS; i++)
-//	{
-//		totalLight += calcPointLight(_PointLights[i], Normal);
-//	}
+
+	for(int i = 0; i < MAX_POINT_LIGHTS; i++)
+	{
+		totalLight += calcPointLight(_PointLights[i], Normal);
+	}
 	
 	
-	FragColor = vec4(calculateLighting(Position, Normal, Albedo),1.0);
+	FragColor = vec4(Albedo * totalLight,1.0);
 }

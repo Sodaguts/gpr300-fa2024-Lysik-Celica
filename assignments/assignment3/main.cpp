@@ -239,9 +239,9 @@ int main() {
 	{
 		//position
 		int x, y, z;
-		x = rand() % 10 + 1;
-		y = rand() % 10 + 1;
-		z = rand() % 10 + 1;
+		x = (rand() % 100 + 1) * -1;
+		y = 2.0f;
+		z = (rand() % 100 + 1) * -1;
 
 		pointLights[i].position = glm::vec3(x, y, z);
 
@@ -378,7 +378,7 @@ int main() {
 		{
 			std::string prefix = "_PointLights[" + std::to_string(i) + "].";
 			lightingShader.setVec3(prefix + "position", pointLights[i].position);
-			lightingShader.setVec3(prefix + "color", pointLights[i].color);
+			lightingShader.setVec4(prefix + "color", pointLights[i].color);
 			lightingShader.setFloat(prefix + "radius", pointLights[i].radius);
 		}
 
